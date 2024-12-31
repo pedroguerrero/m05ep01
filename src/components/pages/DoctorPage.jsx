@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext, Profiler } from 'react';
 import background from '../../assets/bg-2.jpg';
 import { getDoctors } from '../utils/doctor';
 import Row from '../components/Row';
+import Button from '../components/Button';
 import Loading from '../components/Loading';
 import Container from '../components/Container';
 import DoctorList from '../components/DoctorList';
@@ -57,6 +58,26 @@ export default function DoctorPage() {
     return filteredDoctors;
   };
 
+  const getAllDoctors = () => {
+    setIsLoading(true);
+
+    return new Promise((resolve, reject) => {
+      getDoctors()
+        .then((data) => {
+          setDoctors(data);
+          setFilteredDoctors(data);
+          setIsLoading(false);
+
+          resolve();
+        })
+        .catch(() => {
+          setIsLoading(false);
+
+          reject('Error al obtener los medicos');
+        });
+    });
+  };
+
   useEffect(() => {
     if (doctors.length) {
       setFilteredDoctors(doctors);
@@ -64,14 +85,8 @@ export default function DoctorPage() {
       return;
     }
 
-    getDoctors()
-      .then((data) => {
-        setDoctors(data);
-        setFilteredDoctors(data);
-        setIsLoading(false);
-      })
-      .catch(() => alert('Error al obtener los medicos'));
-  }, [doctors.length, setDoctors, doctors]);
+    getAllDoctors().catch((error) => alert(error));
+  }, [doctors]);
 
   return (
     <React.Fragment>
@@ -115,6 +130,26 @@ export default function DoctorPage() {
 
             <Row>
               <Container className="col-md-4 offset-md-8 text-end">
+                <Button
+                  className="btn btn-primary"
+                  onClick={async () => {
+                    try {
+                      await getAllDoctors();
+                    } catch (error) {
+                      alert(error);
+                      alert('Obteniendo doctores nuevamente');
+
+                      getAllDoctors().then((error) => console.log(error));
+                    }
+                  }}
+                >
+                  Recargar lista de Doctores
+                </Button>
+              </Container>
+            </Row>
+
+            <Row>
+              <Container className="col-md-4 offset-md-8 text-end mt-2">
                 <input
                   type="text"
                   className="form-control mb-2"
